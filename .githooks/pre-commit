@@ -5,6 +5,18 @@
 # 導入：git config core.hooksPath .githooks
 set -euo pipefail
 
+# 0) commitに載るメールアドレスが GitHub の noreply であること
+email=$(git config user.email || true)
+case "$email" in
+  *@users.noreply.github.com) ;;
+  *)
+    echo "[pre-commit] user.email が noreply アドレスではありません：'${email}'" >&2
+    echo "[pre-commit] 個人のメールアドレスが公開履歴に残るのを防ぐため、commitを中止します。" >&2
+    echo "[pre-commit] 例：git config user.email '<ID>+<ユーザー名>@users.noreply.github.com'" >&2
+    exit 1
+    ;;
+esac
+
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$staged" ] && exit 0
 
