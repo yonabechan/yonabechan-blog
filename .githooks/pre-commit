@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# 成長OS 共通 pre-commit：AIがcommitしても人がcommitしても必ず動く安全装置
+#  1) ステージされた画像から位置情報などのメタデータを削除（exiftool）
+#  2) 秘密情報の混入を検出（gitleaks があれば使い、なければ簡易パターン）
+# 導入：git config core.hooksPath .githooks
+set -euo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# 1) 画像メタデータの削除
+imgs=$(printf '%s\n' "$staged" | grep -Ei '\.(jpe?g|png|heic|webp|tiff?)$' || true)
+if [ -n "$imgs" ]; then
+  if ! command -v exiftool >/dev/null 2>&1; then
+    echo "[pre-commit] 画像があるのに exiftool がありません。sudo apt install -y libimage-exiftool-perl を実行してください。" >&2
+    exit 1
+  fi
+  while IFS= read -r f; do
+    exiftool -overwrite_original -all= -tagsfromfile @ -Orientation "$f" >/dev/null
+    git add "$f"
+    echo "[pre-commit] メタデータを削除：$f"
+  done <<< "$imgs"
+fi
+
+# 2) 秘密情報の検出
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --staged --no-banner --redact || {
+    echo "[pre-commit] gitleaks が秘密情報らしきものを検出しました。commitを中止します。" >&2; exit 1; }
+else
+  patterns='AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|aws_secret_access_key|-----BEGIN [A-Z ]*PRIVATE KEY-----|xox[baprs]-[0-9A-Za-z-]+|ghp_[0-9A-Za-z]{36}|github_pat_[0-9A-Za-z_]{40,}'
+  # このhook自体（検出パターンを含む）は検査対象から外す
+  diff_cmd=(git diff --cached -U0 -- . ':(exclude).githooks' ':(exclude)templates/githooks')
+  if "${diff_cmd[@]}" | grep '^+' | grep -Eq "$patterns"; then
+    echo "[pre-commit] 秘密情報らしき文字列を検出しました。commitを中止します。" >&2
+    "${diff_cmd[@]}" | grep '^+' | grep -En "$patterns" | sed -E 's/(.{12}).*/\1…（以下省略）/' >&2
+    exit 1
+  fi
+fi
+
+# 3) 公開してはいけないファイル
+if printf '%s\n' "$staged" | grep -Eq '(^|/)\.env($|\.)|\.pem$|credentials$'; then
+  echo "[pre-commit] .env・鍵・認証情報のファイルがステージされています。commitを中止します。" >&2
+  exit 1
+fi
+exit 0
