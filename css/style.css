@@ -155,7 +155,7 @@ img {
     linear-gradient(180deg, rgba(4, 8, 20, 0.15) 0%, rgba(4, 8, 20, 0.05) 60%, var(--color-bg) 100%),
     url("../img/hero-night-piste.jpg");
   background-size: cover;
-  background-position: center 60%;
+  background-position: center 52%;
   background-repeat: no-repeat;
 }
 
