@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Codeでホームページを作って、公開後に失敗した話 | yonabechan</title>
+  <meta name="description" content="AIコーディングツールのClaude Codeでこのブログを作った記録と、公開後に気づいた失敗、そこから仕組みで守るようにした話。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../index.html" class="site-title">yonabechan</a>
+      <nav class="site-nav">
+        <a href="../index.html">Home</a>
+        <a href="index.html" class="active">Posts</a>
+        <a href="../profile.html">Profile</a>
+      </nav>
+    </div>
+    <div class="header-scene" aria-hidden="true"></div>
+  </header>
+
+  <main class="container">
+    <article>
+      <header class="article-header">
+        <p class="article-date">2026.11.23</p>
+        <h1>Claude Codeでホームページを作って、公開後に失敗した話</h1>
+      </header>
+
+      <div class="article-body">
+        <p>
+          このブログは、AIコーディングツールのClaude Codeと一緒に一から作りました。
+          ホームページ制作はほぼ初めてでしたが、思っていたよりずっと早く形になりました。
+          一方で、公開してから気づいた失敗もありました。作った流れと、その失敗から変えたことを記録しておきます。
+        </p>
+
+        <h2>言葉で伝えるだけで、サイトの形ができた</h2>
+        <p>最初にやったのは、「どんなサイトにしたいか」を言葉でClaudeに伝えることです。</p>
+        <ul>
+          <li>個人の日記のようなブログにしたい</li>
+          <li>静的なHTML/CSSだけで作りたい</li>
+          <li>記事はあとから自分でも足していきたい</li>
+        </ul>
+        <p>
+          これだけで、トップページ・記事一覧・個別記事・プロフィールの4ページの構成ができました。
+          デザインも「ダークな雰囲気」「ナイタースキーや雪夜のイメージ」というふわっとした要望から、
+          配色・フォント・ヘッダー画像の使い方まで提案してくれました。
+        </p>
+        <p>公開はGitHub Pagesで、独自ドメインはDNSのAレコードを設定してつなぎました。</p>
+
+        <h2>公開してから気づいた失敗：commit履歴のメールアドレス</h2>
+        <p>
+          AIに任せきりにはせず、公開に関わる部分は一つずつ自分で確認するつもりでした。
+          それでも、公開後にcommit履歴へ個人のメールアドレスが残っていることに気づきました。
+          リポジトリを一時的に非公開に戻し、履歴を修正してから公開し直しました。
+        </p>
+        <p>
+          ファイルの中身は確認していても、「commitの作者情報」は見落としていました。
+          画面に表示されない場所にも、公開される情報があるということです。
+        </p>
+
+        <h2>なぜメールアドレスが残ると困るのか</h2>
+        <p>
+          公開リポジトリのcommit履歴は、誰でも読めます。メールアドレスを機械的に集めるプログラムもあります。
+          残っていると、次のようなことが起こりえます。
+        </p>
+        <ul>
+          <li>迷惑メールやフィッシングが届きやすくなる（GitHubを装った偽の通知など）</li>
+          <li>同じアドレスで登録している他のサービスやSNSと結びつけられ、身元をたどられるきっかけになる</li>
+          <li>メールアドレスがログインIDのサービスでは、パスワードリセットやなりすましの標的にされやすくなる</li>
+        </ul>
+        <p>
+          一度公開された履歴は、あとから修正しても、フォークやキャッシュに残った分までは消せません。
+          だからこそ、「公開してから直す」より「最初から出さない」仕組みが大事だと考えました。
+        </p>
+
+        <h2>自分のリポジトリでも確認できます</h2>
+        <p>公開リポジトリのcommit履歴に残っているメールアドレスは、次のコマンドで一覧できます。</p>
+        <pre><code>git log --all --format='%an &lt;%ae&gt;%n%cn &lt;%ce&gt;' | sort -u</code></pre>
+        <p>
+          自分の個人アドレス（<code>xxx@users.noreply.github.com</code> 以外）が出てきて、そのcommitを公開リポジトリにpush済みなら、誰でも見られる状態です。
+          GitHub上でも、commitのURLの末尾に <code>.patch</code> を付けると確認できます。
+        </p>
+
+        <h2>「気をつける」から「仕組みで守る」へ</h2>
+        <p>この失敗のあと、気をつけるだけに頼るのはやめて、仕組みで守るようにしました。</p>
+        <ul>
+          <li>commitの作者には、GitHubが用意するnoreplyのメールアドレスを使う</li>
+          <li>commitのたびに毎回自動で動くチェック（pre-commit hook）を入れる
+            <ul>
+              <li>画像から位置情報などのメタデータを消す</li>
+              <li>アクセスキーなどの秘密情報が混ざっていたらcommitを止める</li>
+              <li><code>.env</code> や鍵のファイルはcommitさせない</li>
+              <li>commitの作者メールアドレスがnoreply以外ならcommitを止める</li>
+            </ul>
+          </li>
+          <li>GitHubの Settings → Emails で「Keep my email addresses private」と「Block command line pushes that expose my email」をオンにする（登録済みの自分のアドレスを含むpushを拒否してくれる）</li>
+        </ul>
+        <p>
+          hookを入れたあと、位置情報を書き込んだテスト画像でcommitして、位置情報が消えることを確かめました。
+          このリポジトリでは、AIがcommitしても自分がcommitしても同じチェックが動くので、「確認し忘れ」が起きにくくなります（意図して <code>--no-verify</code> で飛ばさない限り）。
+        </p>
+
+        <h2>これから：Markdownで書いて、pushしたら配信まで自動に</h2>
+        <p>今は手書きのHTMLで記事を書いています。これから、次の順番で作り替える予定です。</p>
+        <ol>
+          <li>作業場所をWSLに移し、pre-commit hookを入れる（済み）</li>
+          <li>Astroを使い、新しい記事はMarkdownで書く。GitHub Actionsで自動ビルドする</li>
+          <li>配信をAWS（S3 + CloudFront）に移し、インフラはCDKで管理する</li>
+          <li>動的な機能は、必要になったらサーバーレスで足す</li>
+        </ol>
+        <p>
+          どの段階で止めても、ブログは動き続ける順番にしています。
+          作り替えの記録も、このブログに書いていくつもりです。
+        </p>
+
+        <h2>おわりに</h2>
+        <p>
+          ものづくりやデータ分析の仕事を経て、今はAI駆動開発を学んでいる身として、
+          このホームページ作りは「試しながら学ぶ」をそのままやったような体験でした。
+          AIで速く作れるぶん、何が公開されるかを確かめる仕組みを先に持っておくことが大事だと感じています。
+        </p>
+      </div>
+    </article>
+
+    <p><a href="index.html" class="back-link">← Back to Posts</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 yonabechan</p>
+    </div>
+  </footer>
+</body>
+</html>
