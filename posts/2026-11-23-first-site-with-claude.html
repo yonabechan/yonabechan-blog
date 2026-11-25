@@ -99,6 +99,31 @@
           </li>
           <li>GitHubの Settings → Emails で「Keep my email addresses private」と「Block command line pushes that expose my email」をオンにする（登録済みの自分のアドレスを含むpushを拒否してくれる）</li>
         </ul>
+
+        <figure class="flow-diagram">
+          <div class="flow-step">自分 / Claude Code が <code>git commit</code></div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-stage">
+            <p class="flow-stage-label">① 手元のPC：commitのたびに pre-commit hook が動く</p>
+            <ul class="flow-checks">
+              <li><span>作者のメールアドレスが noreply か</span><span class="flow-tag stop">違えば止める</span></li>
+              <li><span>画像の位置情報などのメタデータ</span><span class="flow-tag fix">自動で消す</span></li>
+              <li><span>アクセスキーなどの秘密情報</span><span class="flow-tag stop">見つけたら止める</span></li>
+              <li><span><code>.env</code>・鍵のファイル</span><span class="flow-tag stop">含まれたら止める</span></li>
+            </ul>
+          </div>
+          <div class="flow-arrow"><span aria-hidden="true">↓</span> すべて通ればcommitされる → <code>git push</code></div>
+          <div class="flow-stage">
+            <p class="flow-stage-label">② GitHub：pushを受け取るとき</p>
+            <ul class="flow-checks">
+              <li><span>登録済みの個人アドレスを含むcommit</span><span class="flow-tag stop">pushを拒否</span></li>
+            </ul>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-step flow-end">GitHub Pages で公開</div>
+          <figcaption>手元とGitHubの二段構えで、公開前に止める</figcaption>
+        </figure>
+
         <p>
           hookを入れたあと、位置情報を書き込んだテスト画像でcommitして、位置情報が消えることを確かめました。
           このリポジトリでは、AIがcommitしても自分がcommitしても同じチェックが動くので、「確認し忘れ」が起きにくくなります（意図して <code>--no-verify</code> で飛ばさない限り）。
