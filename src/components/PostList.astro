@@ -1,0 +1,19 @@
+---
+import { formatDate, type PostSummary } from '../lib/posts';
+
+interface Props {
+  posts: PostSummary[];
+}
+
+const { posts } = Astro.props;
+---
+<ul class="post-list">
+  {posts.map((post) => (
+    <li>
+      <a href={post.href}>
+        <span class="post-date">{formatDate(post.date)}</span>
+        <span class="post-title">{post.title}{post.draft && '（下書き）'}</span>
+      </a>
+    </li>
+  ))}
+</ul>

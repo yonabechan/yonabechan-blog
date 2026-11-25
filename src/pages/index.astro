@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import { getAllPosts } from '../lib/posts';
+
+// トップには新しい順に5件まで出す
+const posts = (await getAllPosts()).slice(0, 5);
+---
+<BaseLayout title="yonabechan" description="日々の記録を綴る個人ブログ「yonabechan」" active="home">
+  <section class="latest-posts">
+    <h2>Latest Posts</h2>
+    <PostList posts={posts} />
+    <p><a href="/posts/index.html">View All Posts →</a></p>
+  </section>
+</BaseLayout>

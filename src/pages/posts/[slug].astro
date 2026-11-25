@@ -1,10 +1,10 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
+import { getMarkdownPosts } from '../../lib/posts';
 
 export async function getStaticPaths() {
-  // draft: true の記事は本番ビルドに出さない（npm run dev では表示して確認できる）
-  const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
+  const posts = await getMarkdownPosts();
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 

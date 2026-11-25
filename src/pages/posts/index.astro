@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostList from '../../components/PostList.astro';
+import { getAllPosts } from '../../lib/posts';
+
+const posts = await getAllPosts();
+---
+<BaseLayout title="記事一覧 | yonabechan" description="yonabechanの記事一覧" active="posts">
+  <h1>Posts</h1>
+
+  <PostList posts={posts} />
+
+  <p><a href="/index.html" class="back-link">← Back to Home</a></p>
+</BaseLayout>

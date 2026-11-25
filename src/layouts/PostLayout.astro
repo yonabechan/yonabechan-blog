@@ -1,5 +1,8 @@
 ---
-// 既存の記事（public/posts/*.html）と同じ HTML 構造・CSS で表示するためのレイアウト
+// 記事ページ。既存の記事（public/posts/*.html）と同じ HTML 構造で表示する
+import BaseLayout from './BaseLayout.astro';
+import { formatDate } from '../lib/posts';
+
 interface Props {
   title: string;
   description: string;
@@ -8,62 +11,18 @@ interface Props {
 }
 
 const { title, description, date, draft = false } = Astro.props;
-
-// 既存記事と同じ「2026.11.23」形式（日本時間）
-const parts = new Intl.DateTimeFormat('ja-JP', {
-  timeZone: 'Asia/Tokyo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-}).formatToParts(date);
-const get = (type: string) => parts.find((p) => p.type === type)?.value;
-const dateText = `${get('year')}.${get('month')}.${get('day')}`;
 ---
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title} | yonabechan</title>
-  <meta name="description" content={description}>
-  {draft && <meta name="robots" content="noindex">}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a href="/index.html" class="site-title">yonabechan</a>
-      <nav class="site-nav">
-        <a href="/index.html">Home</a>
-        <a href="/posts/index.html" class="active">Posts</a>
-        <a href="/profile.html">Profile</a>
-      </nav>
+<BaseLayout title={`${title} | yonabechan`} description={description} active="posts" noindex={draft}>
+  <article>
+    <header class="article-header">
+      <p class="article-date">{formatDate(date)}{draft && '（下書き：公開されません）'}</p>
+      <h1>{title}</h1>
+    </header>
+
+    <div class="article-body">
+      <slot />
     </div>
-    <div class="header-scene" aria-hidden="true"></div>
-  </header>
+  </article>
 
-  <main class="container">
-    <article>
-      <header class="article-header">
-        <p class="article-date">{dateText}{draft && '（下書き：公開されません）'}</p>
-        <h1>{title}</h1>
-      </header>
-
-      <div class="article-body">
-        <slot />
-      </div>
-    </article>
-
-    <p><a href="/posts/index.html" class="back-link">← Back to Posts</a></p>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <p>&copy; 2026 yonabechan</p>
-    </div>
-  </footer>
-</body>
-</html>
+  <p><a href="/posts/index.html" class="back-link">← Back to Posts</a></p>
+</BaseLayout>
