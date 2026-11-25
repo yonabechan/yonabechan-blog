@@ -3,3 +3,8 @@ CLAUDE.md
 README.md
 requirements.md
 posts/template.html
+
+# Astro
+node_modules/
+dist/
+.astro/
