@@ -47,7 +47,7 @@ draft: true # 公開するときに false にする（省略するとビルド�
 
 `draft: true` の記事はビルドに含まれず、公開されません。`npm run dev` では「下書き」と表示して確認できます。
 
-記事の図は `.drawio.svg`（または SVG）を `public/images/` に置き、`<img src="/images/xxx.drawio.svg" alt="…">` で参照します。記事の中に Mermaid のコードは書きません。
+記事の図は `.drawio.svg`（または SVG）を `public/img/` に置き、`<img src="/img/xxx.drawio.svg" alt="…">` で参照します。記事の中に Mermaid のコードは書きません。
 
 ## 開発
 

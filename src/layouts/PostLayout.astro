@@ -19,10 +19,35 @@ const { title, description, date, draft = false } = Astro.props;
       <h1>{title}</h1>
     </header>
 
-    <div class="article-body">
+    <div class="article-body md-body">
       <slot />
     </div>
   </article>
 
   <p><a href="/posts/index.html" class="back-link">← Back to Posts</a></p>
 </BaseLayout>
+
+<style>
+  /* Markdown記事の本文の表だけに効かせる（HTML記事は public/ の静的ファイルなので、この指定は届かない） */
+  .md-body :global(table) {
+    display: block;          /* 幅が足りないとき、表だけを横にスクロールさせる */
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 1.2em 0;
+    border-collapse: collapse;
+  }
+
+  .md-body :global(th),
+  .md-body :global(td) {
+    padding: 0.5em 0.8em;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .md-body :global(th) {
+    background: rgba(255, 255, 255, 0.06);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>
