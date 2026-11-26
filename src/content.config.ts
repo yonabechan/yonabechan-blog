@@ -10,8 +10,10 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
-    // true の記事はビルド（公開）に出さない。npm run dev では確認用に表示する
-    draft: z.boolean().default(false),
+    tags: z.array(z.string()).optional(),
+    // true の記事はビルド（公開）に出さない。npm run dev では確認用に表示する。
+    // 書き忘れて意図せず公開しないよう、省略はできない（省略するとビルドエラー）
+    draft: z.boolean(),
   }),
 });
 
